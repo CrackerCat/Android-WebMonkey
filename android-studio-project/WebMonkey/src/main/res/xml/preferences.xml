@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
   <PreferenceCategory
     android:key="@string/pref_settings_key"
     android:title="@string/pref_settings_title">
@@ -11,6 +11,11 @@
       android:entries="@array/pref_homepage_array_names"
       android:entryValues="@array/pref_homepage_array_values"
       android:defaultValue="@string/pref_homepage_default" />
+
+    <EditTextPreference
+        android:key="@string/pref_custom_homepage_key"
+        android:title="@string/pref_custom_homepage_title"
+        android:defaultValue="https://example.org" />
 
     <EditTextPreference
       android:key="@string/pref_updateinterval_key"

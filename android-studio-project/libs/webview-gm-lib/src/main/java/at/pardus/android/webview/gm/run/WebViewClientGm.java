@@ -16,13 +16,38 @@
 
 package at.pardus.android.webview.gm.run;
 
+import android.app.Application;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.util.Log;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
+import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import at.pardus.android.webview.gm.model.Script;
 import at.pardus.android.webview.gm.model.ScriptRequire;
@@ -303,6 +328,97 @@ public class WebViewClientGm extends WebViewClient {
 	 */
 	public void setSecret(String secret) {
 		this.secret = secret;
+	}
+
+	private static final Pattern charsetPattern = Pattern.compile(".*?charset=(.*?)(;.*)?$");
+
+	@Override
+	public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+		try {
+			HttpURLConnection ownConn;
+			{
+				URLConnection ownConnRaw = new URL(request.getUrl().toString()).openConnection();
+				if (!(ownConnRaw instanceof HttpURLConnection)) {
+					return super.shouldInterceptRequest(view, request);
+				}
+				ownConn =(HttpURLConnection) ownConnRaw;
+			}
+			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : requestMethod = " + request.getMethod());
+			if (!request.getMethod().equalsIgnoreCase("get")) {
+				return super.shouldInterceptRequest(view, request);
+			}
+			ownConn.setRequestMethod(request.getMethod());
+			request.getRequestHeaders().forEach(ownConn::addRequestProperty);
+
+			String contentType = ownConn.getContentType();
+			String charset = null;
+
+			if (contentType != null) {
+				String tokenizedContentType = new StringTokenizer(contentType, ";").nextToken();
+
+				String capturedCharset = ownConn.getContentEncoding();
+				if (capturedCharset == null) {
+					Matcher charsetMatcher = charsetPattern.matcher(contentType);
+					if (charsetMatcher.find() && charsetMatcher.groupCount() > 0) {
+						capturedCharset = charsetMatcher.group(1);
+					}
+				}
+				if (capturedCharset != null && !capturedCharset.isEmpty()) {
+					charset = capturedCharset;
+				}
+				contentType = tokenizedContentType;
+			}
+			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : contentType = " + contentType);
+			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : charset = " + charset);
+
+			int status = ownConn.getResponseCode();
+			InputStream inputStream;
+
+			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : status = " + charset);
+
+			if (status == HttpURLConnection.HTTP_OK) {
+				inputStream = ownConn.getInputStream();
+			} else {
+				inputStream = ownConn.getErrorStream() != null ? ownConn.getErrorStream() : ownConn.getInputStream();
+			}
+
+			Map<String, List<String>> headers = ownConn.getHeaderFields();
+			List<String> contentEncodings = headers.get("Content-Encoding");
+			if (contentEncodings != null) {
+				for (String encoding : contentEncodings) {
+					if (encoding.equalsIgnoreCase("gzip")){
+						inputStream = new GZIPInputStream(inputStream);
+						break;
+					}
+				}
+			}
+			Map<String, String> singleValueHeaderMap = convertConnectionResponseToSingleValueMap(headers);
+			List<String> cspKeys = new ArrayList<String>();
+			singleValueHeaderMap.keySet().forEach(k -> {
+				if (k != null && k.equalsIgnoreCase("Content-Security-Policy")) {
+					cspKeys.add(k);
+				}
+			});
+			cspKeys.forEach(singleValueHeaderMap::remove);
+			singleValueHeaderMap.put("Content-Security-Policy", "");
+			Log.i(TAG, "successfully intercepted request to " + request.getUrl().toString());
+
+			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : headers = " + singleValueHeaderMap);
+
+			return new WebResourceResponse(contentType, charset, status, ownConn.getResponseMessage(), singleValueHeaderMap, inputStream);
+		} catch (Exception e) {
+			Log.w(TAG, "failed intercepting request to " + request.getUrl().toString());
+			e.printStackTrace();
+			return super.shouldInterceptRequest(view, request);
+		}
+	}
+
+	@SuppressWarnings("SimplifyStreamApiCallChains")
+	private static Map<String, String> convertConnectionResponseToSingleValueMap(Map<String, List<String>> headerFields) {
+		return headerFields.entrySet().stream().map(e -> {
+			if (e.getValue() == null) { return null; }
+			return new AbstractMap.SimpleEntry<String, String>(e.getKey(), e.getValue().stream().collect(Collectors.joining(", ")));
+		}).filter(Objects::nonNull).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 	}
 
 }

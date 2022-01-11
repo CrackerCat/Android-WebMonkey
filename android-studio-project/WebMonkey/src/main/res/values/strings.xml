@@ -9,6 +9,7 @@
 
   <!-- Preferences -->
   <string translatable="false" name="pref_lasturl">last_url</string>
+  <string translatable="false" name="pref_custom_homepage">custom_homepage</string>
   <string translatable="false" name="pref_lastupdate">last_update_timestamp</string>
 
   <!-- Settings -->
@@ -20,17 +21,20 @@
   <string name="pref_homepage_array_names_2">Blank page</string>
   <string name="pref_homepage_array_names_3">Userscripts by developer</string>
   <string name="pref_homepage_array_names_4">Userscripts at Greasy Fork</string>
+  <string name="pref_homepage_array_names_5">Custom Page</string>
 
   <string translatable="false" name="pref_homepage_array_values_1">@string/pref_lasturl</string>
   <string translatable="false" name="pref_homepage_array_values_2">about:blank</string>
   <string translatable="false" name="pref_homepage_array_values_3">https://warren-bank.github.io/Android-WebMonkey/index.html</string>
   <string translatable="false" name="pref_homepage_array_values_4">https://greasyfork.org/</string>
+  <string translatable="false" name="pref_homepage_array_values_5">@string/pref_custom_homepage</string>
 
   <string-array name="pref_homepage_array_names">
     <item>@string/pref_homepage_array_names_1</item>
     <item>@string/pref_homepage_array_names_2</item>
     <item>@string/pref_homepage_array_names_3</item>
     <item>@string/pref_homepage_array_names_4</item>
+    <item>@string/pref_homepage_array_names_5</item>
   </string-array>
 
   <string-array name="pref_homepage_array_values">
@@ -38,6 +42,7 @@
     <item>@string/pref_homepage_array_values_2</item>
     <item>@string/pref_homepage_array_values_3</item>
     <item>@string/pref_homepage_array_values_4</item>
+    <item>@string/pref_homepage_array_values_5</item>
   </string-array>
 
   <string translatable="false" name="pref_homepage_key">pref_homepage</string>
@@ -47,10 +52,12 @@
 
   <!-- Settings: Script Update Interval -->
   <string translatable="false" name="pref_updateinterval_key">pref_updateinterval</string>
+  <string translatable="false" name="pref_custom_homepage_key">pref_custom_homepage</string>
   <string translatable="false" name="pref_updateinterval_default">1</string>
   <string name="pref_updateinterval_title">Script Update Interval</string>
   <string name="pref_updateinterval_summary">days between checks..</string>
 
   <!-- Settings: Hard Coded -->
   <string translatable="false" name="user_agent">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4710.39 Safari/537.36</string>
+  <string name="pref_custom_homepage_title">Custom Homepage</string>
 </resources>

@@ -70,6 +70,8 @@ public class SettingsUtils {
 
     return (pref_value.equals(context.getString(R.string.pref_lasturl)))
       ? getLastUrl(context, prefs)
+      : (pref_value.equals(context.getString(R.string.pref_custom_homepage)))
+      ? prefs.getString(context.getString(R.string.pref_custom_homepage_key), "https://example.org")
       : pref_value
     ;
   }

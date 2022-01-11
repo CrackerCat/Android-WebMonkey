@@ -88,6 +88,10 @@ public class BrowserActivity extends WebViewGmImpl implements IBrowser {
     webSettings.setUseWideViewPort(false);
     webSettings.setJavaScriptEnabled(true);
     webSettings.setDomStorageEnabled(true);
+    webSettings.setAllowContentAccess(true);
+    webSettings.setAllowFileAccess(true);
+    webSettings.setSafeBrowsingEnabled(false);
+
     webSettings.setUserAgentString(
       getResources().getString(R.string.user_agent)
     );
