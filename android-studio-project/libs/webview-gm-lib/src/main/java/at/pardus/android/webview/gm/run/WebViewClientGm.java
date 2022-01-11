@@ -19,6 +19,7 @@ package at.pardus.android.webview.gm.run;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -78,6 +79,8 @@ public class WebViewClientGm extends WebViewClient {
 	private String jsBridgeName;
 
 	private String secret;
+
+	private boolean hasLoadingFinished = false;
 
 	/**
 	 * Constructs a new WebViewClientGm with a ScriptStore.
@@ -278,10 +281,21 @@ public class WebViewClientGm extends WebViewClient {
 	@Override
 	public void onPageStarted(WebView view, String url, Bitmap favicon) {
 		runMatchingScripts(view, url, false, null, null);
+		hasLoadingFinished = false;
+		new Handler().postDelayed(() -> {
+			if (hasLoadingFinished) {
+				return;
+			}
+			Log.w(TAG, url + " not loaded after 6000ms! stop loading");
+			hasLoadingFinished = true;
+			view.stopLoading();
+			// runMatchingScripts(view, url, true, null, null);
+		}, 6000);
 	}
 
 	@Override
 	public void onPageFinished(WebView view, String url) {
+		hasLoadingFinished = true;
 		runMatchingScripts(view, url, true, null, null);
 	}
 
@@ -343,6 +357,8 @@ public class WebViewClientGm extends WebViewClient {
 				}
 				ownConn =(HttpURLConnection) ownConnRaw;
 			}
+			ownConn.setConnectTimeout(4000);
+			ownConn.setReadTimeout(6000);
 			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : requestMethod = " + request.getMethod());
 			if (!request.getMethod().equalsIgnoreCase("get")) {
 				return super.shouldInterceptRequest(view, request);
@@ -401,9 +417,8 @@ public class WebViewClientGm extends WebViewClient {
 			});
 			cspKeys.forEach(singleValueHeaderMap::remove);
 			singleValueHeaderMap.put("Content-Security-Policy", "");
-			Log.i(TAG, "successfully intercepted request to " + request.getUrl().toString());
-
 			Log.i(TAG, "intercepting request to " + request.getUrl().toString() + " : headers = " + singleValueHeaderMap);
+			Log.i(TAG, "successfully intercepted request to " + request.getUrl().toString());
 
 			return new WebResourceResponse(contentType, charset, status, ownConn.getResponseMessage(), singleValueHeaderMap, inputStream);
 		} catch (Exception e) {

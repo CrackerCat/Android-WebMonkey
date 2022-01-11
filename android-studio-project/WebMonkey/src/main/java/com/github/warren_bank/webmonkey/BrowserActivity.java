@@ -91,6 +91,7 @@ public class BrowserActivity extends WebViewGmImpl implements IBrowser {
     webSettings.setAllowContentAccess(true);
     webSettings.setAllowFileAccess(true);
     webSettings.setSafeBrowsingEnabled(false);
+    webSettings.setTextZoom(125);
 
     webSettings.setUserAgentString(
       getResources().getString(R.string.user_agent)
